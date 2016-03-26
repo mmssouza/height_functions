@@ -1,0 +1,4 @@
+*.py
+*.*~
+octave-workspace
+*.mexw*

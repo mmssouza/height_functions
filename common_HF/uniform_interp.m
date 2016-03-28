@@ -24,7 +24,7 @@ function [XIs,YIs] = uniform_interp(Xs,Ys,n_samp)
 	i_fill	= 0;
 	cur_len	= d_len;
 	for(ii=2:n_pt)
-		while cur_len <= seg_lens(ii)  & i_fill<n_samp
+		while cur_len <= seg_lens(ii)  && i_fill<n_samp
 			% interpolate a point
 			r	= (cur_len-seg_lens(ii-1)) / (seg_lens(ii)-seg_lens(ii-1));
 			x	= Xs(ii-1)+r*(Xs(ii)-Xs(ii-1));

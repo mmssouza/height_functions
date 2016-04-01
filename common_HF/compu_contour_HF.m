@@ -35,17 +35,20 @@ X3 = repmat(X,3,1);
 Y3 = repmat(Y,3,1);
 
 for p_index = 1+n_pt : n_pt+n_pt
-    scale_index = n_pt/2-1;
+    scale_index = round(n_pt/2-1);
     left = p_index-scale_index;
     right = p_index+scale_index;
     chord = pdist([X3(left) Y3(left); X3(right) Y3(right)]); % chord length
     height_vector = zeros(2*scale_index-1, 1);
-        
     for i = left+1 : right-1
         height_vector(i-left) = det([X3(left) Y3(left) 1; X3(i) Y3(i) 1; X3(right) Y3(right) 1]); % signed area
     end
     height_vector = height_vector / chord; % signed height
-    hf(:, p_index-n_pt) = height_vector;
+	if mod(n_pt,2) == 1
+     hf(:, p_index-n_pt) = height_vector(1:size(height_vector,1) - 1);
+	else
+     hf(:, p_index-n_pt) = height_vector;
+	endif
 end
 
 %-- Normalize tar with the shape diameter --------------------

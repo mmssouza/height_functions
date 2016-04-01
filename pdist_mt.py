@@ -6,10 +6,12 @@ from fastdtw import fastdtw
 
 beta = 0.001
 alpha = 1.
+radius = 1
 
-def set_param(b,a):
+def set_param(b,a,r):
  setattr(sys.modules[__name__],"beta",b)
  setattr(sys.modules[__name__],"alpha",a)
+ setattr(sys.modules[__name__],"radius",r)
  
 def cost(x,y):
  M = len(x)
@@ -21,7 +23,7 @@ def cost(x,y):
 def dist(X,Y):
  CX = np.std(X,axis = 1).mean()
  CY = np.std(Y,axis = 1).mean() 
- return fastdtw(X,Y,dist = cost,radius = 5)[0]/(CX + CY + beta)
+ return fastdtw(X,Y,dist = cost,radius = radius)[0]/(CX + CY + beta)
 
 def pdist(X,idx,q):
  N = len(X)

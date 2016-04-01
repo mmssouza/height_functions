@@ -13,14 +13,17 @@ def set_dim(d):
 
 class sim_ann:
 
- arg_lim = [(25., 512.),(1.,15.)]
+ arg_lim = [(25, 512),(1,15),(0.001,1.),(0.1,3.),(1,50)]
 
  def __gera_s0(self):
   l = []
   l.append(random_integers(self.arg_lim[0][0],self.arg_lim[0][1]))
-  l.append(self.arg_lim[1][0]+ (self.arg_lim[1][1] - self.arg_lim[1][0])*rand())
-  #l.append(self.arg_lim[2][0]+ (self.arg_lim[2][1] - self.arg_lim[2][0])*rand())
-  return scipy.array(l)
+  l.append(random_integers(self.arg_lim[1][0],self.arg_lim[1][1]))
+  l.append(self.arg_lim[2][0]+ (self.arg_lim[2][1] - self.arg_lim[2][0])*rand())
+  l.append(self.arg_lim[3][0]+ (self.arg_lim[3][1] - self.arg_lim[3][0])*rand())
+  l.append(random_integers(self.arg_lim[4][0],self.arg_lim[4][1]))
+  
+  return l
 
  def __init__(self,f,T0,alpha,P,L):
   seed()
@@ -36,10 +39,15 @@ class sim_ann:
    self.hall_of_fame.insert(0,scipy.hstack((self.fit,self.s)))
   
  def Perturba(self,x,f):
-  for i in range(x.shape[0]):
+  for i in range(len(x)):
    if scipy.rand() < 0.3:
     aux = x[i]
-    x[i] = x[i] + 0.6*x[i]*(1+f)*scipy.randn()
+    if type(aux) == float: 
+     x[i] = x[i] + x[i]*(1+f)*scipy.randn() 
+    else:
+	 delta = int(round(x[i]*3.5*rand()))
+	 x[i] = random_integers(x[i]-delta,x[i]+delta)
+	
     if not (self.arg_lim[i][0] <= x[i] <= self.arg_lim[i][1]):
 	 x[i] = aux
   return x
@@ -48,11 +56,12 @@ class sim_ann:
   i = 1
   self.nS = 0
   while (True):
-   si = self.Perturba(self.s.copy(),self.fit)
+   si = self.Perturba(list(self.s),self.fit)
    aux = self.f(si)
    delta = aux - self.fit
    if (delta < 0) or (math.exp(-delta/self.T) > scipy.rand()):
-    self.s = si.copy();self.fit = aux
+    self.s = list(si);
+    self.fit = aux
     self.nS = self.nS + 1
    i = i + 1
    if (i > self.P) or (self.nS > self.L):

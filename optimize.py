@@ -1,5 +1,7 @@
 
 import sys
+import cPickle
+import os.path
 import scipy
 import math
 import numpy as np
@@ -27,20 +29,27 @@ class sim_ann:
 
  def __init__(self,f,T0,alpha,P,L):
   seed()
-  self.s = self.__gera_s0()
-  self.T = T0
+  self.f = f
+  if os.path.isfile("dump_sim_ann.pkl"):
+   dump_fd = open("dump_sim_ann.pkl",'r')
+   self.s = cPickle.load(dump_fd)
+   self.T = cPickle.load(dump_fd)
+   self.fit = cPickle.load(dump_fd)
+   self.hall_of_fame = cPickle.load(dump_fd)
+  else:
+   self.s = self.__gera_s0()
+   self.T = T0
+   self.fit = self.f(self.s)
+   self.hall_of_fame = []   
+   for i in scipy.arange(15):
+    self.hall_of_fame.insert(0,scipy.hstack((self.fit,self.s)))
   self.P = P
   self.L = L
   self.alpha = alpha
-  self.f = f
-  self.fit = self.f(self.s)
-  self.hall_of_fame = []   
-  for i in scipy.arange(15):
-   self.hall_of_fame.insert(0,scipy.hstack((self.fit,self.s)))
   
  def Perturba(self,x,f):
   for i in range(len(x)):
-   if scipy.rand() < 0.3:
+   if scipy.rand() < 0.5:
     aux = x[i]
     if type(aux) == float: 
      x[i] = x[i] + x[i]*(1+f)*scipy.randn() 
@@ -74,9 +83,15 @@ class sim_ann:
 	 if k < 15:
 	  self.hall_of_fame.insert(k,scipy.hstack((self.fit,self.s)))
 	  self.hall_of_fame.pop()   
-	break
+	break  
   self.T = self.alpha*self.T
-  
+  dump_fd = open("dump_sim_ann.pkl","wb")
+  cPickle.dump(self.s,dump_fd)
+  cPickle.dump(self.T,dump_fd)
+  cPickle.dump(self.fit,dump_fd)
+  cPickle.dump(self.hall_of_fame,dump_fd)
+  dump_fd.close()
+
 class coevol:
  arg_lim = [(5., 100.),(0.,.2),(.6,1.),(30,512)]
  def __init__(self,challenge_func,ns = 10,npop1 = 20,pr = 0.3,beta = 0.85,npop2 = 20,w = 0.7,c1 = 1.5,c2 = 1.5):

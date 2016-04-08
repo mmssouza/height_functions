@@ -5,25 +5,20 @@ from multiprocessing import Queue,Process
 from fastdtw import fastdtw
 
 beta = 0.001
-alpha = 1.
 radius = 1
 
-def set_param(b,a,r):
+def set_param(b = beta,r = radius):
  setattr(sys.modules[__name__],"beta",b)
- setattr(sys.modules[__name__],"alpha",a)
  setattr(sys.modules[__name__],"radius",r)
  
-def cost(x,y):
- M = len(x)
- c = 0
- for k in np.arange(M):
-  c = c + np.abs(x[k] - y[k])/float(min(k+1, M-k+1))**alpha
- return c
-
 def dist(X,Y):
- CX = np.std(X,axis = 1).mean()
- CY = np.std(Y,axis = 1).mean() 
- return fastdtw(X,Y,dist = cost,radius = radius)[0]/(CX + CY + beta)
+  CX = np.std(X,axis = 0)
+  CY = np.std(Y,axis = 0)
+  M = X.shape[0]
+  c = 0
+  for i in np.arange(M): 
+   c = c + fastdtw(X[i],Y[i],radius = radius)[0]/(CX[i] + CY[i] + beta)
+  return c
 
 def pdist(X,idx,q):
  N = len(X)

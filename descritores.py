@@ -210,12 +210,13 @@ def aii(name,r,white_bg = False):
 
 # Distance integral invariant
 def dii(fn,raio,nc = 256,method = 'cv'):
-  r = raio
   c = contour_base(fn,nc = nc,method = method)
   aux = np.vstack([c.c.real,c.c.imag]).T
   d = squareform(pdist(aux))
-  return np.array([x[np.nonzero(x <= r)].sum() for x in d])
- 
+  r = raio*c.perimeter()/(2*np.pi)
+  res = np.array([x[np.nonzero(x <= r)].sum() for x in d])/float(r)
+  return res - res.mean()
+  
 # Centroid distance signature
 def cd(fn,nc = 256,method = 'cv'):
   img_c = contour_base(fn,nc = nc,method = method)

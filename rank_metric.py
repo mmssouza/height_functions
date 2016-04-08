@@ -3,33 +3,38 @@
 import sys
 import cPickle
 import numpy as np
+from scipy.stats import norm
 from fastdtw import fastdtw
 from time import time
 import descritores as desc
-
-def cost(x,y):
-  M = len(x)
-  c = 0
-  for k in np.arange(M):
-   c = c + np.abs(x[k] - y[k])/float(min(k+1, M-k+1))**alpha
-  return c
+from pdist_mt import pdist_mt,set_param
 
 if __name__ == '__main__':
- # Pontos do contorno
- nc = 100
- #Suavizacao
- raio = np.array([8,16,24,32,40,48])
- # Calculo da distancia
- beta = 0.0001
- # Calculo da distancia
- alpha = 1
- radius = 20
  
+ nc = 100
+ raio = np.array([0.025,0.05,0.1,0.15,0.25,0.5])
+ # Parâmetros da distância
+ beta = 0.001
+ radius = 40
+ sigma = .25
+
+ def smooth(x,s):
+  N = len(x)
+  mean = N/2
+  t = np.arange(N)
+  xx = np.hstack((x,x,x))
+  xs = np.convolve(xx,norm(mean,s).pdf(t),'same')[N:2*N]
+  return xs
+
  def dist(X,Y):
-  CX = np.std(X,axis = 1).mean()
-  CY = np.std(Y,axis = 1).mean() 
-  return fastdtw(X,Y,dist = cost,radius = radius)[0]/(CX + CY + beta)
-  
+  CX = np.std(X,axis = 0)
+  CY = np.std(Y,axis = 0)
+  M = len(raio)
+  c = 0
+  for i in np.arange(M): 
+   c = c + fastdtw(X[i],Y[i],radius = radius)[0]/(CX[i] + CY[i] + beta)
+  return c
+
  def pdist(X):
   N = len(X)
   p = np.zeros((N,N))
@@ -51,17 +56,20 @@ if __name__ == '__main__':
  print "Calculando descritores"
  
  tt = time()
- Fl = [np.array([desc.dii(sys.argv[1] + k,raio = r,nc = nc,method = "octave") for r in raio]) for k in names]
+ Fl = [np.array([smooth(desc.dii(sys.argv[1] + k,raio = r,nc = nc,method = "octave"),sigma) for r in raio]) for k in names]
  print time() - tt
 
  print "Calculando matriz de distancias"
 
+ #tt = time()
+ #md = pdist(Fl)
+ #print time() - tt
+
+ set_param(b = beta, r = radius)
  tt = time()
-
- md = pdist(Fl)
-
+ md = pdist_mt(Fl,8)
  print time() - tt
-
+ 
  l = np.zeros((Nclasses,Nretr),dtype = int)
 
  for i,nome in zip(np.arange(N),names):
@@ -82,4 +90,5 @@ if __name__ == '__main__':
 
  print l
  print v
+ print ((v - 99.)**2).sum()/v.shape[0]
 

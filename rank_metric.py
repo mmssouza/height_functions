@@ -11,11 +11,11 @@ from pdist_mt import pdist_mt,set_param
 
 if __name__ == '__main__':
  
- nc = 100
- raio = np.array([0.025,0.05,0.1,0.15,0.25,0.5])
+ nc = 100 
+ raio = np.array([0.15,0.25,0.5,0.75,1.0,1.3,1.5,1.8])
  # Parâmetros da distância
  beta = 0.001
- radius = 40
+ radius = 45 
  sigma = .25
 
  def smooth(x,s):
@@ -42,7 +42,6 @@ if __name__ == '__main__':
    for j in np.arange(i,N):
     if i != j:
      p[i,j] = dist(X[i],X[j])
-   print i
   return p+p.T
    
  db = cPickle.load(open(sys.argv[1]+"classes.txt"))

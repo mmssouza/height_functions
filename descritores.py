@@ -213,7 +213,8 @@ def dii(fn,raio,nc = 256,method = 'cv'):
   c = contour_base(fn,nc = nc,method = method)
   aux = np.vstack([c.c.real,c.c.imag]).T
   d = squareform(pdist(aux))
-  r = raio*c.perimeter()/(2*np.pi)
+  #r = raio*c.perimeter()/(2*np.pi)
+  r = raio*np.abs(c.c - c.c.mean()).max()
   res = np.array([x[np.nonzero(x <= r)].sum() for x in d])/float(r)
   return res - res.mean()
   

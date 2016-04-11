@@ -11,24 +11,21 @@ from pdist_mt import pdist_mt,set_param
 
 if __name__ == '__main__':
  
- nc = 100 
- raio = np.array([0.15,0.25,0.5,0.75,1.0,1.3,1.5,1.8])
+ nc = 32
+ raio = np.array([0.05,0.15,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5])
  # Parâmetros da distância
  beta = 0.001
- radius = 45 
- sigma = .25
+ radius = 35
+ sigma = .15
 
  def smooth(x,s):
   N = len(x)
-  mean = N/2
-  t = np.arange(N)
-  xx = np.hstack((x,x,x))
-  xs = np.convolve(xx,norm(mean,s).pdf(t),'same')[N:2*N]
-  return xs
+  return np.convolve(np.hstack((x,x,x)),norm(N/2,s).pdf(np.arange(N)),'same')[N:2*N]
 
+  
  def dist(X,Y):
-  CX = np.std(X,axis = 0)
-  CY = np.std(Y,axis = 0)
+  CX = np.std(X,axis = 1)
+  CY = np.std(Y,axis = 1)
   M = len(raio)
   c = 0
   for i in np.arange(M): 
@@ -66,7 +63,7 @@ if __name__ == '__main__':
 
  set_param(b = beta, r = radius)
  tt = time()
- md = pdist_mt(Fl,8)
+ md = pdist_mt(Fl,2)
  print time() - tt
  
  l = np.zeros((Nclasses,Nretr),dtype = int)

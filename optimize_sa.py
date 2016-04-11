@@ -1,31 +1,37 @@
 #!/usr/bin/python -u
-
+# -*- coding: utf-8 -*-
 import sys
 import getopt
 import cPickle
 import optimize
-import oct2py
-from multiprocessing import Pool,cpu_count
-from pdist_mt import silhouette,set_param
+import descritores as desc
+from scipy.stats import norm
+from multiprocessing import cpu_count
+from pdist_mt import pdist_mt,set_param
 import numpy as np
-import amostra_base
-from functools import partial
+#import amostra_base
 from time import time
-
-def fy(n,nc):
-  oc = oct2py.Oct2Py()
-  oc.addpath("common_HF")
-  oc.eval("pkg load statistics;")
-  a = oc.batch_hf(n,nc)
-  oc.exit()
-  return a
  
 if __name__ == '__main__':
+
+ def smooth(x,s):
+  N = len(x)
+  return np.convolve(np.hstack((x,x,x)),norm(N/2,s).pdf(np.arange(N)),'same')[N:2*N]
+  
  mt = cpu_count()
+ # Pontos do contorno
+ nc = 32
+ # Parâmetros da distância
+ beta = 0.001
+ radius = 35
+ set_param(beta,radius)
  dataset = ""
  fout = ""
  dim = -1
- NS = 5
+ # Amostras/classe
+ NS = 11
+ Nclasses = 9
+ Nretr = 11
  
  try:                                
   opts,args = getopt.getopt(sys.argv[1:], "o:d:", ["mt=","dim=","output=","dataset="])
@@ -42,6 +48,9 @@ if __name__ == '__main__':
    dataset = arg
   elif opt == "--dim":
    dim = int(arg)
+   optimize.set_dim(dim)
+   print optimize.Dim
+  
   
  conf = [float(i) for i in args]
 
@@ -55,67 +64,52 @@ if __name__ == '__main__':
  Head = {'algo':algo,'conf':"T0,alpha,P,L = {0},{1},{2},{3}".format(conf[0],conf[1],conf[2],conf[3]),'dim':dim,"dataset":dataset}
  
  Y,names = [],[]
- with open(dataset+"/"+"classes.txt","r") as f:
-  cl = cPickle.load(f)
-  nm = amostra_base.amostra(dataset,NS)
-  for k in nm:
-   Y.append(cl[k])
-   names.append(dataset+"/"+k)
-
-# def cost_test(args):
-#  Nc =  args[0]
-#  k = args[1]
-#  beta = args[2]
-#  alpha = args[3]
-#  radius = args[4]
-#  print "{0} {1} {2} {3} {4}".format(Nc,k,round(beta,5),round(alpha,3),radius) 
-
-# return 0.1
+ cl = cPickle.load(open(dataset+"/"+"classes.txt","r"))
+  #nm = amostra_base.amostra(dataset,NS)
+ for k in cl.keys():
+  Y.append(cl[k])
+  names.append(k)
   
  def cost_func(args):  
   tt = time() 
+  sigma = args[-1]
+  raios = args[0:-1]
   N = len(names)
   Ncpu = getattr(sys.modules[__name__],"mt")
-  Nc =  int(round(args[0]))
-  k = int(round(args[1]))
-  beta = args[2]
-  alpha = args[3]
-  radius = int(round(args[4]))
-  set_param(beta,alpha,radius)
-  print "Avaliando funcao custo para N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, beta = {4}, alpha = {5}, radius = {6}".format(N,Ncpu,Nc,k,round(beta,5),round(alpha,3),radius) 
-
-  limits_hi= np.linspace(2*N/Ncpu,N,Ncpu/2).astype(int)
-  limits_lo = np.hstack((0,limits_hi[0:limits_hi.shape[0]-1]))
-  idx =[np.arange(lo,hi) for lo,hi in zip(limits_lo,limits_hi)]
-  l = [np.array(names)[i].tolist() for i in idx]
-  print "Calculando hf"
-  p = Pool(processes = Ncpu/2) 
-  ff = partial(getattr(sys.modules[__name__],"fy"),nc = Nc)
-  res = p.map(ff,l)
-  p.close()
-  a = []
+  Nc =  nc
+#  limits_hi= np.linspace(2*N/Ncpu,N,Ncpu/2).astype(int)
+#  limits_lo = np.hstack((0,limits_hi[0:limits_hi.shape[0]-1]))
+#  idx =[np.arange(lo,hi) for lo,hi in zip(limits_lo,limits_hi)]
+#  l = [np.array(names)[i].tolist() for i in idx]
+#  print "Calculando hf"
+#  p = Pool(processes = Ncpu/2) 
+#  ff = partial(getattr(sys.modules[__name__],"fy"),nc = Nc)
+#  res = p.map(ff,l)
+#  p.close()
+  Fl = [np.array([smooth(desc.dii(dataset+"/"+k,raio = r,nc = Nc,method = "octave"),sigma) for r in raios]) for k in names]
   
-  for i in res:
-   a = a+i
-  
-  Fl = []
+  #print "Calculando Silhouette"
+  #cost = float(np.median(1. - silhouette(Fl,np.array(Y)-1,Nthreads = Ncpu)))
+  md = pdist_mt(Fl,Ncpu) 
+  l = np.zeros((Nclasses,Nretr),dtype = int)
 
-  print "Suavizando"
- 
-  if k > 1:
-   limits_lo = np.arange(0,Nc-3,k)
-   limits_hi= np.arange(k,Nc-3,k)
-   idx =[np.arange(lo,hi) for lo,hi in zip(limits_lo[0:len(limits_lo)-1],limits_hi)]
-   for mt in a:
-    F = np.array([[k[i].mean() for i in idx] for k in mt.T])
-    Fl.append(F)
-  else:
-   for mt in a:
-    Fl.append(mt.T)  
+  for i,nome in zip(np.arange(N),names):
+  # Para cada linha de md estabelece rank de recuperacao
+  # O primeiro elemento de cada linha corresponde a forma modelo
+  # Obtem a classe dos objetos recuperados pelo ordem crescente de distancia
+   idx = np.argsort(md[i])
+  # pega classes a qual pertencem o primeiro padrao e as imagens recuperadas
+   classe_padrao = cl[nome]
+   name_retr = np.array(names)[idx] 
+   aux = np.array([cl[j] for j in name_retr])
+   classe_retrs = aux[0:Nretr]
+   n = np.nonzero(classe_retrs == classe_padrao)
+   for i in n[0]:
+    l[classe_padrao-1,i] = l[classe_padrao-1,i] + 1 
 
-  print "Calculando Silhouette"
-  cost = float(np.median(1. - silhouette(Fl,np.array(Y)-1,Nthreads = Ncpu)))
-  print
+  v = np.array([l[:,i].sum() for i in np.arange(Nretr)])
+  cost = ((v - 99.)**2).sum()/v.shape[0]
+  print args
   print "tempo total: {0} seconds".format(time() - tt)
   print "cost = {0}".format(cost)
   return cost

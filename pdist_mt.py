@@ -3,22 +3,19 @@ import scipy
 import numpy as np
 from multiprocessing import Queue,Process
 from fastdtw import fastdtw
+from scipy.spatial.distance import cityblock,cosine
 
 beta = 0.001
 radius = 1
 
-def set_param(b = beta,r = radius):
+def set_param(b,r):
  setattr(sys.modules[__name__],"beta",b)
  setattr(sys.modules[__name__],"radius",r)
  
 def dist(X,Y):
-  CX = np.std(X,axis = 0)
-  CY = np.std(Y,axis = 0)
-  M = X.shape[0]
-  c = 0
-  for i in np.arange(M): 
-   c = c + fastdtw(X[i],Y[i],radius = radius)[0]/(CX[i] + CY[i] + beta)
-  return c
+ CX = np.std(X,axis = 0).mean()
+ CY = np.std(Y,axis = 0).mean()
+ return fastdtw(X.T,Y.T,radius = radius,dist = cosine)[0]/(CX + CY + beta)
 
 def pdist(X,idx,q):
  N = len(X)

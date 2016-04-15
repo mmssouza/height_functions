@@ -44,3 +44,4 @@ function [XIs,YIs] = uniform_interp(Xs,Ys,n_samp)
 		title(['n_samp=' i2s(n_samp) ', len=' i2s(length(XIs))]);
 		keyboard;
 	end
+

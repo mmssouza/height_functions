@@ -1,4 +1,5 @@
 #!/usr/bin/python -u
+# -*- coding: utf-8 -*-
 
 import sys
 import os.path
@@ -26,7 +27,6 @@ if __name__ == '__main__':
  dataset = ""
  fout = ""
  dim = -1
- NS = 3
  
  try:                                
   opts,args = getopt.getopt(sys.argv[1:], "o:d:", ["mt=","dim=","output=","dataset="])
@@ -43,7 +43,9 @@ if __name__ == '__main__':
    dataset = arg
   elif opt == "--dim":
    dim = int(arg)
-  
+   optimize.set_dim(dim)
+   print optimize.Dim
+
  conf = [float(i) for i in args]
 
  if dataset == "" or fout == "" or len(conf) != 4 or dim <= 0:
@@ -66,23 +68,12 @@ if __name__ == '__main__':
  Head = {'algo':algo,'conf':"T0,alpha,P,L = {0},{1},{2},{3}".format(conf[0],conf[1],conf[2],conf[3]),'dim':dim,"dataset":dataset}
  
  Y,names = [],[]
+
  with open(dataset+"/"+"classes.txt","r") as f:
   cl = cPickle.load(f)
-  nm = amostra_base.amostra(dataset,NS)
-  print len(nm)
-  for k in nm:
+  for k in cl.keys():
    Y.append(cl[k])
    names.append(dataset+"/"+k)
-
-# def cost_test(args):
-#  Nc =  args[0]
-#  k = args[1]
-#  beta = args[2]
-#  alpha = args[3]
-#  radius = args[4]
-#  print "{0} {1} {2} {3} {4}".format(Nc,k,round(beta,5),round(alpha,3),radius) 
-
-# return 0.1
   
  def cost_func(args):  
   tt = time() 
@@ -149,4 +140,7 @@ if __name__ == '__main__':
    os.remove("dump_sim_ann.pkl") 
    cPickle.dump(w.hall_of_fame[0],f)
    nn = 0
- 
+
+
+
+

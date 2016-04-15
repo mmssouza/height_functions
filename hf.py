@@ -4,7 +4,6 @@ import sys
 import oct2py 
 import cPickle
 import numpy as np
-import fastdtw
 from functools import partial
 from time import time
 from multiprocessing import Pool,cpu_count
@@ -87,17 +86,6 @@ if __name__ == '__main__':
 
  print "Calculando matriz de distancias"
 
-# tt = time()
-# md = np.zeros((N,N))
-
-# for i in np.arange(len(Fl)):
-#  for j in np.arange(i,len(Fl)):
-#   md[i,j] = dist(Fl[i],Fl[j],beta)
-   
-# md = md + md.T
-# print md
-# print time() - tt
-
  tt = time()
 
  md = pdist_mt(Fl)
@@ -116,7 +104,7 @@ if __name__ == '__main__':
     
 # Bull eye
  print 20*1400,tt
-print tt/float(1400*20)  
+ print tt/float(1400*20)  
 
 
 

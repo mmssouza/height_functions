@@ -27,3 +27,4 @@ function [cont] = extract_longest_cont(im, n_contsamp)
             
 	[XIs,YIs]	= uniform_interp(cont(:,1),cont(:,2),n_contsamp-1);
 	cont		= [cont(1,:); [XIs YIs]];
+

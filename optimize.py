@@ -14,8 +14,7 @@ def set_dim(d):
  setattr(sys.modules[__name__],"Dim",d)
 
 class sim_ann:
-
- arg_lim = [(25, 512),(1,15),(0.001,1.),(0.1,3.),(1,50)]
+ arg_lim = [(25, 200),(3,15),(0.001,1.),(0.1,3.),(1,50)]
 
  def __gera_s0(self):
   l = []

@@ -1,1 +1,2 @@
-optimize_sa.py --dim 1 --dataset ../leaves_png -o sa_hf_leaves_trial_2.pkl 90 0.95 8 5
+optimize_sa.py --dim 10 --dataset ../kimia99/ -o sa_dii_kimia99.pkl 80 0.85 5 2
+

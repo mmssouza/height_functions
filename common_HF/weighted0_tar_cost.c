@@ -84,4 +84,4 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
 // definition of weight:
 // the weight is symmetric, i.e., w1=w24, w2=w23, w3=w22...,w12=w13
-// thus w(k) = 1 / (min{k+1, nBin1+1-k-1} + 1)
+

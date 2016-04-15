@@ -78,3 +78,4 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /* Return */
     plhs[0] = pMxHC;
 }
+

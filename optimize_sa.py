@@ -117,10 +117,9 @@ if __name__ == '__main__':
   Nc =  int(round(args[0]))
   k = int(round(args[1]))
   #thre = args[2]
-  #num_start = int(round(args[3]))
+  num_start = int(round(args[2]))
   #search_step = int(round(args[4]))
   thre = 0.
-  num_start = 1
   search_step = 1
   print "Avaliando funcao custo para N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, thre = {4}, ns = {5}, ss = {6}".format(N,Ncpu,Nc,k,thre,num_start,search_step) 
 

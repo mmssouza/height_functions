@@ -57,7 +57,7 @@ if __name__ == '__main__':
  Y,names = [],[]
  with open(dataset+"/"+"classes.txt","r") as f:
   cl = cPickle.load(f)
-  nm = amostra_base.amostra(dataset,NS)
+  nm = amostra_base.amostra(dataset,cl,NS)
   for k in nm:
    Y.append(cl[k])
    names.append(dataset+"/"+k)
@@ -79,8 +79,8 @@ if __name__ == '__main__':
   Nc =  int(round(args[0]))
   k = int(round(args[1]))
   beta = args[2]
-  alpha = args[3]
-  radius = int(round(args[4]))
+  alpha = 1.
+  radius = int(round(args[3]))
   set_param(beta,alpha,radius)
   print "Avaliando funcao custo para N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, beta = {4}, alpha = {5}, radius = {6}".format(N,Ncpu,Nc,k,round(beta,5),round(alpha,3),radius) 
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
   
   for i in res:
    a = a+i
-  
+  print len(a),a[0].shape
   Fl = []
 
   print "Suavizando"
@@ -112,7 +112,7 @@ if __name__ == '__main__':
   else:
    for mt in a:
     Fl.append(mt.T)  
-
+  #print len(Fl),Fl[0].shape
   print "Calculando Silhouette"
   cost = float(np.median(1. - silhouette(Fl,np.array(Y)-1,Nthreads = Ncpu)))
   print

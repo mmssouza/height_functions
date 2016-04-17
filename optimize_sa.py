@@ -6,7 +6,6 @@ import cPickle
 import optimize
 import oct2py
 from multiprocessing import Pool,cpu_count
-from pdist_mt import silhouette,set_param
 import numpy as np
 import amostra_base
 from functools import partial
@@ -57,7 +56,7 @@ if __name__ == '__main__':
  Y,names = [],[]
  with open(dataset+"/"+"classes.txt","r") as f:
   cl = cPickle.load(f)
-  nm = amostra_base.amostra(dataset,NS)
+  nm = amostra_base.amostra(dataset,cl,NS)
   for k in nm:
    Y.append(cl[k])
    names.append(dataset+"/"+k)
@@ -71,18 +70,56 @@ if __name__ == '__main__':
 #  print "{0} {1} {2} {3} {4}".format(Nc,k,round(beta,5),round(alpha,3),radius) 
 
 # return 0.1
-  
+ 
+ def silhouette(X, cIDX):
+    """
+    Computes the silhouette score for each instance of a clustered dataset,
+    which is defined as:
+        s(i) = (b(i)-a(i)) / max{a(i),b(i)}
+    with:
+        -1 <= s(i) <= 1
+
+    Args:
+        X    : A M-by-N array of M observations in N dimensions
+        cIDX : array of len M containing cluster indices (starting from zero)
+
+    Returns:
+        s    : silhouette value of each observation
+    """
+
+    N = len(X)              # number of instances
+    K = len(np.unique(cIDX))    # number of clusters
+
+    # compute pairwise distance matrix
+    #D = squareform(pdist(X,metric = distance))
+    D = X
+ 
+    # indices belonging to each cluster
+    kIndices = [np.flatnonzero(cIDX==k) for k in range(K)]
+
+    # compute a,b,s for each instance
+    a = np.zeros(N)
+    b = np.zeros(N)
+    for i in range(N):
+        # instances in same cluster other than instance itself
+        a[i] = np.mean( [D[i][ind] for ind in kIndices[cIDX[i]] if ind!=i] )
+        # instances in other clusters, one cluster at a time
+        b[i] = np.min( [np.mean(D[i][ind]) 
+                        for k,ind in enumerate(kIndices) if cIDX[i]!=k] )
+    s = (b-a)/np.maximum(a,b)
+
+    return s
+ 
  def cost_func(args):  
   tt = time() 
   N = len(names)
   Ncpu = getattr(sys.modules[__name__],"mt")
   Nc =  int(round(args[0]))
   k = int(round(args[1]))
-  beta = args[2]
-  alpha = args[3]
-  radius = int(round(args[4]))
-  set_param(beta,alpha,radius)
-  print "Avaliando funcao custo para N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, beta = {4}, alpha = {5}, radius = {6}".format(N,Ncpu,Nc,k,round(beta,5),round(alpha,3),radius) 
+  thre = args[2]
+  num_start = int(round(args[3]))
+  search_step = int(round(args[4]))
+  print "Avaliando funcao custo para N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, thre = {4}, ns = {5}, ss = {6}".format(N,Ncpu,Nc,k,thre,num_start,search_step) 
 
   limits_hi= np.linspace(2*N/Ncpu,N,Ncpu/2).astype(int)
   limits_lo = np.hstack((0,limits_hi[0:limits_hi.shape[0]-1]))
@@ -97,7 +134,6 @@ if __name__ == '__main__':
   
   for i in res:
    a = a+i
-  
   Fl = []
 
   print "Suavizando"
@@ -108,13 +144,17 @@ if __name__ == '__main__':
    idx =[np.arange(lo,hi) for lo,hi in zip(limits_lo[0:len(limits_lo)-1],limits_hi)]
    for mt in a:
     F = np.array([[k[i].mean() for i in idx] for k in mt.T])
-    Fl.append(F)
+    Fl.append(F.T)
   else:
    for mt in a:
-    Fl.append(mt.T)  
-
+    Fl.append(mt)
+  print "Calculando md"
+  oc = oct2py.Oct2Py()
+  oc.addpath("common_HF")  
+  md = oc.pdist2(Fl,thre,num_start,search_step)
+  oc.exit()
   print "Calculando Silhouette"
-  cost = float(np.median(1. - silhouette(Fl,np.array(Y)-1,Nthreads = Ncpu)))
+  cost = float(np.median(1. - silhouette(md,np.array(Y)-1)))
   print
   print "tempo total: {0} seconds".format(time() - tt)
   print "cost = {0}".format(cost)

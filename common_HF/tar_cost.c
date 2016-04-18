@@ -1,6 +1,6 @@
 #include "mex.h"
 
-bool bDebug=false;
+//bool bDebug=false;
 
 /*-----------------------------------------------------------------------
 function HC=hist_cost_2(sc1,sc2)

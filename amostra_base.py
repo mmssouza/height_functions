@@ -4,8 +4,7 @@ import sys
 import numpy as np
 import cPickle
 
-def amostra(path,N = 3):
- cl = cPickle.load(open(path+"/"+"classes.txt"))
+def amostra(path,cl,N = 3):
  classes = np.array(cl.values())
  samples_list = []
  for i in np.arange(1,classes.max()+1):

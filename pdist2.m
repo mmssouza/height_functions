@@ -8,7 +8,7 @@ function [md] = pdist2(X,thre,num_start,search_step)
     f2 = X{k2};
     [costmat] = weighted0_tar_cost(f1, f2);
     %-- MATCHING
-    [cvec1, match_cost] = mixDPMatching_c(costmat, thre, num_start, search_step);
+    [cvec1, match_cost] = mixDPMatching_C(costmat, thre, num_start, search_step);
     md(k1, k2) = match_cost;
    endif
   end

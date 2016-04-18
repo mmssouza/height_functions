@@ -11,14 +11,15 @@ import numpy as np
 import amostra_base
 from functools import partial
 from time import time
+import atexit
 
 def fy(n,nc):
   oc = oct2py.Oct2Py()
   oc.addpath("common_HF")
   oc.eval("pkg load statistics;")
-  a = oc.batch_hf(n,nc)
+  a,b = oc.batch_hf(n,nc)
   oc.exit()
-  return a
+  return (a,b)
  
 if __name__ == '__main__':
  mt = cpu_count()
@@ -72,15 +73,9 @@ if __name__ == '__main__':
    Y.append(cl[k])
    names.append(dataset+"/"+k)
 
-# def cost_test(args):
-#  Nc =  args[0]
-#  k = args[1]
-#  beta = args[2]
-#  alpha = args[3]
-#  radius = args[4]
-#  print "{0} {1} {2} {3} {4}".format(Nc,k,round(beta,5),round(alpha,3),radius) 
-
-# return 0.1
+ oc = oct2py.Oct2Py()
+ oc.addpath("common_HF")
+ atexit.register(oc.exit)
  
  def silhouette(X, cIDX):
     """
@@ -126,13 +121,11 @@ if __name__ == '__main__':
   N = len(names)
   Ncpu = getattr(sys.modules[__name__],"mt")
   Nc =  int(round(args[0]))
-  k = int(round(args[1]))
-  #thre = args[2]
+  k = int(round(Nc*args[1]))
   num_start = int(round(args[2]))
-  #search_step = int(round(args[4]))
-  thre = 0.
+  thre = args[3]
   search_step = 1
-  #print "Avaliando funcao custo para N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, thre = {4}, ns = {5}, ss = {6}".format(N,Ncpu,Nc,k,thre,num_start,search_step) 
+  print "N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, thre = {4}, ns = {5}, ss = {6}".format(N,Ncpu,Nc,k,thre,num_start,search_step) 
 
   limits_hi= np.linspace(2*N/Ncpu,N,Ncpu/2).astype(int)
   limits_lo = np.hstack((0,limits_hi[0:limits_hi.shape[0]-1]))
@@ -143,11 +136,13 @@ if __name__ == '__main__':
   ff = partial(getattr(sys.modules[__name__],"fy"),nc = Nc)
   res = p.map(ff,l)
   p.close()
-  a = []
+  a,b = [],[]
   
-  for i in res:
+  for i,j in res:
    a = a+i
-  Fl = []
+   b = b+j
+
+  Fl1,Fl2 = [],[]
 
   #print "Suavizando"
  
@@ -157,23 +152,25 @@ if __name__ == '__main__':
    idx =[np.arange(lo,hi) for lo,hi in zip(limits_lo[0:len(limits_lo)-1],limits_hi)]
    for mt in a:
     F = np.array([[k[i].mean() for i in idx] for k in mt.T])
-    Fl.append(F.T)
+    Fl1.append(F.T)
+   for mt in b:
+    F = np.array([[k[i].mean() for i in idx] for k in mt.T])
+    Fl2.append(F.T)
   else:
    for mt in a:
-    Fl.append(mt)
+    Fl1.append(mt)
+   for mt in b:
+    Fl2.append(mt)
   #print "Calculando md"
-  oc = oct2py.Oct2Py()
-  oc.addpath("common_HF")  
-  md = oc.pdist2(Fl,thre,num_start,search_step)
-  oc.exit()
+  oc.clear()
+  md = oc.pdist2(Fl1,Fl2,thre,num_start,search_step)
   #print "Calculando Silhouette"
   cost = float(np.median(1. - silhouette(md,np.array(Y)-1)))
   #print
   #print "tempo total: {0} seconds".format(time() - tt)
   #print "cost = {0}".format(cost)
-  sys.stdout.write(".")
-  #print "tempo total: {0} seconds".format(time() - tt)
-  #print "cost = {0}".format(cost)
+  #sys.stdout.write(".")
+  print "tempo total: {0} seconds cost = {1}".format(time() - tt,cost)
   return cost
 
  with open(fout,"ab",0) as f:

@@ -19,7 +19,7 @@ def fy(n,nc):
   oc.eval("pkg load statistics;")
   a,b = oc.batch_hf(n,nc)
   oc.exit()
-  return (a,b)
+  return [a,b]
  
 if __name__ == '__main__':
  mt = cpu_count()
@@ -138,9 +138,9 @@ if __name__ == '__main__':
   p.close()
   a,b = [],[]
   
-  for i,j in res:
-   a = a+i
-   b = b+j
+  for i in res:
+   a = a+i[0]
+   b = b+i[1]
 
   Fl1,Fl2 = [],[]
 

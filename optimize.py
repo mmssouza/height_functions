@@ -15,7 +15,7 @@ def set_dim(d):
 
 class sim_ann:
 
- arg_lim = [(30, 300),(0.05,0.4),(1,200),(0.,2.)]
+ arg_lim = [(30, 300),(0.04,0.4),(1,200),(0.,2.)]
 
  def __gera_s0(self):
   l = []
@@ -48,16 +48,13 @@ class sim_ann:
   
  def Perturba(self,x):
   for i in range(len(x)):
-   if scipy.rand() < 0.7:
+   if scipy.rand() < 0.6:
     aux = x[i]
     if type(aux) == float: 
-     x[i] = aux + aux*0.25*scipy.randn() 
+     x[i] = aux + 0.2*scipy.randn() 
     else:
-     delta = int(round(aux*2*rand()))
-     if rand() > 0.5:
-       x[i] = aux-delta
-     else:
-       x[i] = aux+delta         
+     delta = int(round(40*scipy.randn()))
+     x[i] = aux+delta         
     if x[i] >= self.arg_lim[i][1]:
      x[i] = self.arg_lim[i][1]
     elif x[i] <= self.arg_lim[i][0]:

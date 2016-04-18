@@ -1,5 +1,6 @@
 *.pyc
 *.*~
 octave-workspace
-*.mexw*
+*.mex*
+*.o
 *.pkl

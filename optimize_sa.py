@@ -64,14 +64,6 @@ if __name__ == '__main__':
  N,M = 200,3
 
  Head = {'algo':algo,'conf':"T0,alpha,P,L = {0},{1},{2},{3}".format(conf[0],conf[1],conf[2],conf[3]),'dim':dim,"dataset":dataset}
- 
- Y,names = [],[]
- with open(dataset+"/"+"classes.txt","r") as f:
-  cl = cPickle.load(f)
-  nm = amostra_base.amostra(dataset,cl,NS)
-  for k in nm:
-   Y.append(cl[k])
-   names.append(dataset+"/"+k)
 
  oc = oct2py.Oct2Py()
  oc.addpath("common_HF")
@@ -118,13 +110,22 @@ if __name__ == '__main__':
  
  def cost_func(args):  
   tt = time() 
-  N = len(names)
   Ncpu = getattr(sys.modules[__name__],"mt")
   Nc =  int(round(args[0]))
   k = int(round(Nc*args[1]))
   num_start = int(round(args[2]))
   thre = args[3]
   search_step = 1
+
+  Y,names = [],[]
+  with open(dataset+"/"+"classes.txt","r") as f:
+   cl = cPickle.load(f)
+   nm = amostra_base.amostra(dataset,cl,NS)
+   for i in nm:
+    Y.append(cl[i])
+    names.append(dataset+"/"+i)
+  N = len(names)
+
   print "N = {0}, Ncpu = {1}, Nc = {2}, k = {3}, thre = {4}, ns = {5}, ss = {6}".format(N,Ncpu,Nc,k,thre,num_start,search_step)
   #print "{0} {1} {2} {3} {4}".format(Nc,k,thre,num_start,search_step)    
   limits_hi= np.linspace(2*N/Ncpu,N,Ncpu/2).astype(int)
@@ -152,14 +153,18 @@ if __name__ == '__main__':
    idx =[np.arange(lo,hi) for lo,hi in zip(limits_lo[0:len(limits_lo)-1],limits_hi)]
    for mt in a:
     F = np.array([[k[i].mean() for i in idx] for k in mt.T])
+    F = F/np.tile(F.max(axis = 0),(Nc,1))
     Fl1.append(F.T)
    for mt in b:
     F = np.array([[k[i].mean() for i in idx] for k in mt.T])
+    F = F/np.tile(F.max(axis = 0),(Nc,1)) 
     Fl2.append(F.T)
   else:
    for mt in a:
-    Fl1.append(mt)
+    F = mt.T/np.tile(mt.T.max(axis = 0),(Nc,1))
+    Fl1.append(F)
    for mt in b:
+    F = mt.T/np.tile(mt.T.max(axis = 0),(Nc,1))
     Fl2.append(mt)
   #print "Calculando md"
   oc.clear()

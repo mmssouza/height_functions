@@ -1,3 +1,4 @@
+
 /*	This file contains some useful small functions frequently used in 
 	C code for matlab.
 	Haibin Ling, hbling AT umiacs.umd.edu
@@ -8,7 +9,6 @@
 #define COMMON_MATLAB
 
 #include "mex.h"
-#include "matrix.h"
 
 #include "math.h"
 #include "stdio.h"
@@ -73,4 +73,3 @@ bool myDist(double* D, double* X1,int m1, double* X2, int m2, int dim)
 
 
 #endif
-

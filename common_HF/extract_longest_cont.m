@@ -25,5 +25,5 @@ function [cont] = extract_longest_cont(im, n_contsamp)
     [min_v,id]	= min(cont(:,2));
     cont		= circshift(cont,[length(cont)-id+1]);
             
-	[XIs,YIs]	= uniform_interp(cont(:,1),cont(:,2),n_contsamp-1);
+	[XIs,YIs]	= uniform_interp_C(cont(:,1),cont(:,2),n_contsamp-1);
 	cont		= [cont(1,:); [XIs YIs]];

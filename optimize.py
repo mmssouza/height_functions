@@ -14,7 +14,7 @@ def set_dim(d):
  setattr(sys.modules[__name__],"Dim",d)
 
 class sim_ann:
- arg_lim = [(30, 300),(0.04,0.4),(1,200),(0.,2.)]
+ arg_lim = [(30, 250),(0.04,0.4),(1,200),(0.,2.),(0.001,2.)]
 
  def __gera_s0(self):
   l = []
@@ -22,6 +22,7 @@ class sim_ann:
   l.append(self.arg_lim[1][0]+ (self.arg_lim[1][1] - self.arg_lim[1][0])*rand())
   l.append(random_integers(self.arg_lim[2][0],self.arg_lim[2][1]))
   l.append(self.arg_lim[3][0]+ (self.arg_lim[3][1] - self.arg_lim[3][0])*rand())
+  l.append(self.arg_lim[4][0]+ (self.arg_lim[4][1] - self.arg_lim[4][0])*rand())
  
   return l
 
